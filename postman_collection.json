@@ -1,0 +1,96 @@
+{
+  "info": {
+    "name": "AuraLuna API",
+    "_postman_id": "a0e1b5c5-aaaa-bbbb-cccc-ddddeeeeffff",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Claude: prompt",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "content-type", "value": "application/json" }],
+        "url": {
+          "raw": "{{baseUrl}}/api/claude",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "claude"]
+        },
+        "body": { "mode": "raw", "raw": "{\"mood\":\"Sleepy\"}" }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('status 200', () => pm.response.code === 200);",
+              "const j = pm.response.json();",
+              "pm.expect(j.prompt || j.text || j.output).to.be.a('string');"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Fish: tts",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "content-type", "value": "application/json" }],
+        "url": {
+          "raw": "{{baseUrl}}/api/fish",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "fish"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\"text\":\"Drift into gentle sleep.\",\"format\":\"mp3\",\"speed\":0.7}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('status 200', () => pm.response.code === 200);",
+              "const j = pm.response.json();",
+              "pm.expect(j.audioUrl || j.audio).to.exist;",
+              "if (j.audio) pm.expect(j.contentType || 'audio/mpeg').to.include('audio');"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Vapi: live (optional)",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "content-type", "value": "application/json" }],
+        "url": {
+          "raw": "{{baseUrl}}/api/vapi",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "vapi"]
+        },
+        "body": { "mode": "raw", "raw": "{\"text\":\"Short sleepy whisper.\"}" }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('returns JSON', () => pm.response.headers.get('content-type').includes('application/json'));",
+              "const j = pm.response.json();",
+              "if (pm.response.code >= 200 && pm.response.code < 300) {",
+              "  pm.expect(j.audioUrl || j.audio).to.exist;",
+              "} else {",
+              "  pm.expect(j.error).to.exist; // informative error until Vapi is configured",
+              "}"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [{ "key": "baseUrl", "value": "http://localhost:3000" }]
+}
