@@ -1,19 +1,23 @@
 "use client";
 
+// Trigger redeployment
+
 import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 
 const MOODS = [
-  "Calm",
   "Sleepy",
   "Serene",
   "Gentle Rain",
   "Ocean",
   "Forest Night",
   "Warm Fireplace",
+  // Social Impact
+  "Calm",
 ];
 
 export default function Home() {
+  // A. Removed contextInput state
   const [liveMode, setLiveMode] = useState(false);
   const [mood, setMood] = useState("Sleepy");
   const [loading, setLoading] = useState(false);
@@ -74,6 +78,7 @@ export default function Home() {
 
     try {
       // 1️⃣ Claude → Generate the whisper text
+      // B. API payload is now clean, only sending 'mood'
       const cjson = await postJsonOrThrow("/api/claude", { mood });
       const text =
         cjson.prompt ||
@@ -160,6 +165,7 @@ export default function Home() {
               <label className="block text-sm mb-1 text-[#a6a4b1]">Mood</label>
               <select
                 value={mood}
+                // Cleared the contextInput state change here too for consistency
                 onChange={(e) => setMood(e.target.value)}
                 className="w-full rounded-xl bg-[#121219] border border-white/10 px-4 py-3 outline-none focus:ring-2 focus:ring-[#b7a6da]"
               >
@@ -170,6 +176,8 @@ export default function Home() {
                 ))}
               </select>
             </div>
+
+            {/* C. Removed the entire conditional context block here */}
 
             {/* Generate button */}
             <button
@@ -187,7 +195,7 @@ export default function Home() {
             </button>
           </div>
           {/* Vapi check box */}
-
+          {/* Vapi 
           <div className="flex items-center gap-3 pl-2 pt-3">
             <input
               id="live-whisper"
@@ -205,6 +213,7 @@ export default function Home() {
               Live Whisper (Vapi)
             </label>
           </div>
+          check box */}
 
           {/* Output */}
           {!!message && (
@@ -229,10 +238,11 @@ export default function Home() {
             </div>
           )}
         </div>
-
+        {/* Tip
         <p className="mt-6 text-center text-sm text-[#9aa0a6]">
           Tip: Click “Generate Whisper” again to craft another variation.
         </p>
+        */}
       </main>
     </div>
   );

@@ -26,7 +26,7 @@ async function chooseModel() {
     throw new Error(`Models listing failed: ${t}`);
   }
 
-  const data = await r.json(); // { data: [{id: "..."} , ...] }
+  const data = await r.json();
   const ids = (data?.data || []).map((m) => m.id);
 
   // Pick the first preferred model that exists in your account
@@ -50,18 +50,33 @@ export async function POST(req) {
 
     const model = await chooseModel();
 
+    const systemInstruction =
+      "You are a whisper ASMR artist. Return multiple, short, simple sentences in a calming bedtime voice (no quotes, no emojis), suitable to be read aloud in a slow, soft voice. Use ellipses (...) to indicate necessary pauses for a gentle, measured pace. Keep the response under 100 words. Do not use terms of endearment, but do be direct, similar to 'let your eyes flutter shut, and drift off to sleep.'";
+
+    // --- Dynamic User Prompt Logic ---
+    let userPromptContent;
+
+    if (mood === "Calm") {
+      // SECONDARY PROMPT: Targeted grounding for anxiety relief
+      userPromptContent =
+        "The user is seeking immediate calm. Use ellipses (...) to indicate necessary pauses for a gentle, very slow measured pace. Generate a short, supportive whisper that validates their current feelings ('It's okay to feel this way, you are safe,') and gently encourages them to focus on breating to stay in the present moment.";
+    } else {
+      // ORIGINAL PROMPT: Used for all other relaxation/sleep moods
+      userPromptContent = `Mood: ${mood}. Create a gentle quiet whisper-style experience to help someone fall asleep.`;
+    }
+    // --- End Dynamic User Prompt Logic ---
+
     const resp = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
       headers: ANTHROPIC_HEADERS,
       body: JSON.stringify({
         model,
         max_tokens: 180,
-        system:
-          "You are a whisper ASMR artist. Return multiple, short, simple sentences in a calming bedtime voice (no quotes, no emojis), suitable to be read aloud in a slow, soft voice. Use ellipses (...) to indicate necessary pauses for a gentle, measured pace. Keep the response under 100 words. Do not use terms of endearment, but do be direct, similar to 'let your eyes flutter shut, and drift off to sleep.'",
+        system: systemInstruction, // Using the extracted variable
         messages: [
           {
             role: "user",
-            content: `Mood: ${mood}. Create a gentle quiet whisper-style experience to help someone fall asleep.`,
+            content: userPromptContent, // Using the dynamic variable
           },
         ],
       }),
