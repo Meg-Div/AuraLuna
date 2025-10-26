@@ -1,8 +1,6 @@
 "use client";
 
-// Trigger redeployment
-
-import { useEffect, useMemo, useState } from "react";
+import { useState } from "react";
 import Image from "next/image";
 
 const MOODS = [
@@ -77,8 +75,8 @@ export default function Home() {
     setLoading(true);
 
     try {
-      // 1️⃣ Claude → Generate the whisper text
-      // B. API payload is now clean, only sending 'mood'
+      // Claude, Generates the whisper text
+      // API payload is now clean, only sending 'mood'
       const cjson = await postJsonOrThrow("/api/claude", { mood });
       const text =
         cjson.prompt ||
@@ -87,36 +85,24 @@ export default function Home() {
         "Rest and breathe softly.";
       setMessage(text);
 
-      // 2️⃣ Generate or stream audio (Vapi live or Fish static)
+      // Generate or stream audio (Vapi live or Fish static)
       let url = null;
 
-      if (liveMode) {
-        // --- Live Whisper via Vapi ---
-        const vjson = await postJsonOrThrow("/api/vapi", { text, mood });
-        if (vjson.audioUrl) {
-          url = vjson.audioUrl;
-        } else if (vjson.audio && (vjson.contentType || vjson.mimeType)) {
-          url = `data:${vjson.contentType || vjson.mimeType};base64,${
-            vjson.audio
-          }`;
-        }
-      } else {
-        // --- Static Whisper via Fish (TTS) ---
-        const fjson = await postJsonOrThrow("/api/fish", {
-          text,
-          format: "mp3",
-          speed: 0.7,
-        });
-        if (fjson.audioUrl) {
-          url = fjson.audioUrl;
-        } else if (fjson.audio && (fjson.contentType || fjson.mimeType)) {
-          url = `data:${fjson.contentType || fjson.mimeType};base64,${
-            fjson.audio
-          }`;
-        }
+      // --- Static Whisper via Fish (TTS) ---
+      const fjson = await postJsonOrThrow("/api/fish", {
+        text,
+        format: "mp3",
+        speed: 0.7,
+      });
+      if (fjson.audioUrl) {
+        url = fjson.audioUrl;
+      } else if (fjson.audio && (fjson.contentType || fjson.mimeType)) {
+        url = `data:${fjson.contentType || fjson.mimeType};base64,${
+          fjson.audio
+        }`;
       }
 
-      // 3️⃣ Validate and play
+      // Validate and play
       if (!url) throw new Error("No audio returned");
       setAudioUrl(url);
 
@@ -155,8 +141,6 @@ export default function Home() {
             AI-crafted whisper narration to send you to sleep.
           </p>
 
-          {/*below*/}
-
           <div className="flex flex-col md:flex-row gap-4 items-stretch md:items-end">
             {/* Live toggle */}
 
@@ -165,7 +149,6 @@ export default function Home() {
               <label className="block text-sm mb-1 text-[#a6a4b1]">Mood</label>
               <select
                 value={mood}
-                // Cleared the contextInput state change here too for consistency
                 onChange={(e) => setMood(e.target.value)}
                 className="w-full rounded-xl bg-[#121219] border border-white/10 px-4 py-3 outline-none focus:ring-2 focus:ring-[#b7a6da]"
               >
@@ -176,8 +159,6 @@ export default function Home() {
                 ))}
               </select>
             </div>
-
-            {/* C. Removed the entire conditional context block here */}
 
             {/* Generate button */}
             <button
@@ -194,42 +175,6 @@ export default function Home() {
                 : "Generate Whisper"}
             </button>
           </div>
-          {/* Vapi check box */}
-          {/* Vapi 
-          <div className="flex items-center gap-3 pl-2 pt-3">
-            <input
-              id="live-whisper"
-              type="checkbox"
-              checked={liveMode}
-              onChange={(e) => setLiveMode(e.target.checked)}
-              className="h-5 w-5 accent-[#b7a6da]"
-              aria-label="Toggle Live Whisper (Vapi)"
-            />
-            <label
-              htmlFor="live-whisper"
-              className="text-sm text-[#a6a4b1] select-none"
-              title="When on, uses Vapi live voice. When off, generates static audio via Fish."
-            >
-              Live Whisper (Vapi)
-            </label>
-          </div>
-          check box */}
-
-          {/* Output */}
-          {!!message && (
-            <div className="mt-8">
-              <p className="text-lg md:text-xl leading-relaxed text-[#d8d5e2] italic">
-                “{message}”
-              </p>
-            </div>
-          )}
-
-          {/* Player */}
-          {!!audioUrl && (
-            <div className="mt-6">
-              <audio controls src={audioUrl} className="w-full" />
-            </div>
-          )}
 
           {/* Error */}
           {!!error && (
@@ -238,11 +183,6 @@ export default function Home() {
             </div>
           )}
         </div>
-        {/* Tip
-        <p className="mt-6 text-center text-sm text-[#9aa0a6]">
-          Tip: Click “Generate Whisper” again to craft another variation.
-        </p>
-        */}
       </main>
     </div>
   );
