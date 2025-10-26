@@ -123,8 +123,8 @@ export default function Home() {
         <Image
           src="/auraluna-logo.png"
           alt="AuraLuna Logo"
-          width={500}
-          height={500}
+          width={400}
+          height={400}
           className="object-contain"
           priority
         />
